@@ -1,0 +1,80 @@
+{
+  "name": "XOXO_24H_Email_Report",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "mode": "everyDay",
+            "hour": 8,
+            "minute": 0
+          }
+        ]
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "echo '\ud83d\udcc5 Fecha: $(date)'\necho '\ud83d\udcc2 Componentes vigilados:'\nls /mnt/data/XOXO_RadioGuard_vigilancia/* -d\necho '\n\ud83d\udcc4 Contenido de logs:'\nfind /mnt/data/XOXO_RadioGuard_vigilancia -type f -name '*.log' -exec echo '\ud83d\udd39 {}' \\; -exec cat {} \\;\necho '\n*\u2014 Reporte generado por XOXO, centinela de las horas invisibles.*'"
+      },
+      "name": "Generar Reporte",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "hormigasais@gmail.com",
+        "toEmail": "hormigasais@gmail.com",
+        "subject": "\ud83d\udee1\ufe0f Informe Diario de Vigilancia XOXO",
+        "text": "={{$node[\"Generar Reporte\"].json[\"stdout\"]}}"
+      },
+      "name": "Enviar Correo",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        640,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "gmail_smtp_placeholder",
+          "name": "Gmail SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Generar Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Reporte": {
+      "main": [
+        [
+          {
+            "node": "Enviar Correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
